@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node Control with 30-Day kWh Meter</title>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(120deg, #00796B, #48A999, #B2DFDB); /* Aqua gradient */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1100px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #004D40;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            color: #004D40;
+        }
+
+        .input-group input {
+            margin-top: 10px;
+            padding: 10px;
+            border: 2px solid #004D40;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .node-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .node-card {
+            background: linear-gradient(135deg, #80CBC4, #004D40);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            color: #fff;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #004D40;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #00695C;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>30-Day Power Consumption Meter</h1>
+        
+        <!-- Input for kWh Rate -->
+        <div class="input-group">
+            <label for="pricePerKwh">Enter kWh Rate (in ₱): </label>
+            <input type="number" id="pricePerKwh" value="0.00" step="0.1" onchange="updateCost()">
+        </div>
+        
+        <!-- Node Controls and kWh Tracking for 30 Days -->
+        <div class="node-grid">
+            <!-- Node 1 Control -->
+            <div class="node-card">
+                <h2>Node 1</h2>
+                <p>Status: <span id="node1Status">Loading...</span></p>
+                <p>Power: <span id="node1Power">Loading...</span> Watts</p>
+                <p>kWh Consumed Today: <span id="node1Kwh">Loading...</span> kWh</p>
+                <p>30-Day kWh: <span id="node1TotalKwh">Loading...</span> kWh</p>
+                <button onclick="controlNode('node1', 'on')">Turn On</button>
+                <button onclick="controlNode('node1', 'off')">Turn Off</button>
+                <button onclick="resetNode('node1')">Reset</button>
+            </div>
+
+            <!-- Node 2 Control -->
+            <div class="node-card">
+                <h2>Node 2</h2>
+                <p>Status: <span id="node2Status">Loading...</span></p>
+                <p>Power: <span id="node2Power">Loading...</span> Watts</p>
+                <p>kWh Consumed Today: <span id="node2Kwh">Loading...</span> kWh</p>
+                <p>30-Day kWh: <span id="node2TotalKwh">Loading...</span> kWh</p>
+                <button onclick="controlNode('node2', 'on')">Turn On</button>
+                <button onclick="controlNode('node2', 'off')">Turn Off</button>
+                <button onclick="resetNode('node2')">Reset</button>
+            </div>
+
+            <!-- Node 3 Control -->
+            <div class="node-card">
+                <h2>Node 3</h2>
+                <p>Status: <span id="node3Status">Loading...</span></p>
+                <p>Power: <span id="node3Power">Loading...</span> Watts</p>
+                <p>kWh Consumed Today: <span id="node3Kwh">Loading...</span> kWh</p>
+                <p>30-Day kWh: <span id="node3TotalKwh">Loading...</span> kWh</p>
+                <button onclick="controlNode('node3', 'on')">Turn On</button>
+                <button onclick="controlNode('node3', 'off')">Turn Off</button>
+                <button onclick="resetNode('node3')">Reset</button>
+            </div>
+
+            <!-- Node 4 Control -->
+            <div class="node-card">
+                <h2>Node 4</h2>
+                <p>Status: <span id="node4Status">Loading...</span></p>
+                <p>Power: <span id="node4Power">Loading...</span> Watts</p>
+                <p>kWh Consumed Today: <span id="node4Kwh">Loading...</span> kWh</p>
+                <p>30-Day kWh: <span id="node4TotalKwh">Loading...</span> kWh</p>
+                <button onclick="controlNode('node4', 'on')">Turn On</button>
+                <button onclick="controlNode('node4', 'off')">Turn Off</button>
+                <button onclick="resetNode('node4')">Reset</button>
+            </div>
+        </div>
+
+        <!-- Total Consumption -->
+        <h2>Total Consumption (Last 30 Days)</h2>
+        <p>Total kWh Consumed: <span id="totalKwh">Loading...</span> kWh</p>
+        <p>Total Cost: $<span id="totalCost">Loading...</span></p>
+    </div>
+
+    <script>
+        // Firebase configuration
+        var firebaseConfig = {
+            apiKey: "your-api-key",
+            authDomain: "your-auth-domain",
+            databaseURL: "your-database-url",
+            projectId: "your-project-id",
+            storageBucket: "your-storage-bucket",
+            messagingSenderId: "your-messaging-sender-id",
+            appId: "your-app-id"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Function to control node (on/off)
+        function controlNode(node, action) {
+            firebase.database().ref('nodes/' + node + '/status').set(action);
+        }
+
+        // Function to reset node
+        function resetNode(node) {
+            firebase.database().ref('nodes/' + node + '/fault').remove();  // Clear fault status
+            controlNode(node, 'on');  // Optionally turn the node back on after reset
+        }
+
+        // Function to calculate total kWh consumption over 30 days
+        function calculateTotalConsumption(nodes) {
+            var totalKwh = 0;
+            for (var node in nodes) {
+                var nodeData = nodes[node];
+                var totalNodeKwh = nodeData.totalKwh || 0;
+                totalKwh += totalNodeKwh;
+            }
+            return totalKwh;
+        }
+
+        // Function to update cost based on user-entered kWh rate
+        function updateCost() {
+            var pricePerKwh = parseFloat(document.getElementById('pricePerKwh').value);
+            var totalKwh = parseFloat(document.getElementById('totalKwh').innerText);
+            var totalCost = totalKwh * pricePerKwh;
+            document.getElementById('totalCost').innerText = totalCost.toFixed(2);
+        }
+
+        // Function to update node information from Firebase
+        function updateNodeData() {
+            firebase.database().ref('nodes').on('value', function(snapshot) {
+                var nodes = snapshot.val();
+                document.getElementById('node1Status').innerText = nodes.node1.status;
+                document.getElementById('node1Power').innerText = nodes.node1.power;
+                document.getElementById('node1Kwh').innerText = nodes.node1.kwhToday;
+                document.getElementById('node1TotalKwh').innerText = nodes.node1.totalKwh;
+
+                document.getElementById('node2Status').innerText = nodes.node2.status;
+                document.getElementById('node2Power').innerText = nodes.node2.power;
+                document.getElementById('node2Kwh').innerText = nodes.node2.kwhToday;
+                document.getElementById('node2TotalKwh').innerText = nodes.node2.totalKwh;
+
+                document.getElementById('node3Status').innerText = nodes.node3.status;
+                document.getElementById('node3Power').innerText = nodes.node3.power;
+                document.getElementById('node3Kwh').innerText = nodes.node3.kwhToday;
+                document.getElementById('node3TotalKwh').innerText = nodes.node3.totalKwh;
+
+                document.getElementById('node4Status').innerText = nodes.node4.status;
+                document.getElementById('node4Power').innerText = nodes.node4.power;
+                document.getElementById('node4Kwh').innerText = nodes.node4.kwhToday;
+                document.getElementById('node4TotalKwh').innerText = nodes.node4.totalKwh;
+
+                // Update total kWh and cost
+                var totalKwh = calculateTotalConsumption(nodes);
+                document.getElementById('totalKwh').innerText = totalKwh;
+                updateCost();  // Update total cost based on the updated kWh
+            });
+        }
+
+        // Initialize
+        updateNodeData();
+    </script>
+</body>
+</html>
