@@ -185,6 +185,39 @@
         };
         firebase.initializeApp(firebaseConfig);
 
+    let presentTimeout;
+    
+     // Function to monitor and handle 'present' field updates
+        function monitorMasterKey() {
+            const masterKeyRef = firebase.database().ref('masterKey/present');
+
+            // Listen for changes to the 'present' value
+            masterKeyRef.on('value', (snapshot) => {
+                const presentValue = snapshot.val();
+                console.log('MasterKey present updated:', presentValue);
+
+                // Reset the timeout on every update
+                resetPresentTimeout();
+
+                if (!presentValue) {
+                    console.log('MasterKey present is already false, no need to set.');
+                    return;  // If already false, do nothing
+                }
+            });
+        }
+
+        // Reset the timeout to set 'present' to false after 5 seconds
+        function resetPresentTimeout() {
+            // Clear the previous timeout if it exists
+            if (presentTimeout) clearTimeout(presentTimeout);
+
+            // Set a new timeout for 5 seconds
+            presentTimeout = setTimeout(() => {
+                console.log('No update for 5 seconds, setting present to false.');
+                firebase.database().ref('masterKey/present').set(false);
+            }, 5000);
+        }
+
         // Function to control node (on/off)
         function controlNode(node, action) {
             firebase.database().ref('nodes/' + node + '/status').set(action);
@@ -248,6 +281,8 @@
 
         // Initialize
         updateNodeData();
+// Initialize the monitoring
+        monitorMasterKey();
     </script>
 </body>
 </html>
