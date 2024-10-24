@@ -225,8 +225,9 @@
 
         // Function to reset node
         function resetNode(node) {
-            firebase.database().ref('nodes/' + node + '/fault').remove();  // Clear fault status
-            controlNode(node, 'on');  // Optionally turn the node back on after reset
+            firebase.database().ref('nodes/' + node + '/fault').set(false); 
+            firebase.database().ref('nodes/' + node + '/status').set('ON');
+            controlNode(node, 'ON');  // Optionally turn the node back on after reset
         }
 
         // Function to calculate total kWh consumption over 30 days
